@@ -33,25 +33,3 @@ By default, whenever you bring down the Docker network, your MySQL data will be 
 volumes:
   - ./mysql:/var/lib/mysql
 ```
-
-
-### run laravel-mix
-- watch: 
-all pages
-```
-make mix-watch
-```
-- watch with page list
-```
-make mix-watch booth,main-hall
-```
-
-- production
-all pages
-```
-make mix-prod  
-```
-with page list needed
-```
-make mix-prod booth, main-hall  
-```
