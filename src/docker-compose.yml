@@ -1,0 +1,101 @@
+version: "3"
+
+networks:
+  laravel:
+
+services:
+  site:
+    image: nginx:stable-alpine
+    ports:
+      - "${APP_PORT}:80"
+    volumes:
+      - ./src:/var/www/html
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - php
+      - mysql
+    networks:
+      - laravel
+
+  mysql:
+    image: mysql:8.0.28
+    command: --default-authentication-plugin=mysql_native_password
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT}:3306"
+    volumes:
+      - '../mysql:/var/lib/mysql'
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      #MYSQL_ROOT_USER: root
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    networks:
+      - laravel
+
+  php:
+    build:
+      context: .
+      dockerfile: ./docker/php/php.dockerfile
+    volumes:
+      - ./src:/var/www/html
+      - ./docker/php/php.ini:/usr/local/etc/php/php.ini
+    # ports:
+    #   - "9000:9000"
+    networks:
+      - laravel
+
+  composer:
+    image: composer:2.0.8
+    volumes:
+      - ./src:/var/www/html
+    working_dir: /var/www/html
+    depends_on:
+      - php
+    networks:
+      - laravel
+    entrypoint: ["composer"] # Install without other php modules required
+
+  # npm:
+  #   image: node:13.7
+  #   volumes:
+  #     - ./src:/var/www/html
+  #   working_dir: /var/www/html
+  #   entrypoint: ["npm"]
+
+  artisan:
+    build:
+      context: .
+      dockerfile: ./docker/php/php.dockerfile
+    volumes:
+      - ./src:/var/www/html
+    depends_on:
+      - mysql
+    working_dir: /var/www/html
+    entrypoint: ["php", "/var/www/html/artisan"]
+    networks:
+      - laravel
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "${REDIS_PORT}:6379"
+    networks:
+      - laravel
+
+  cron:
+    build:
+      context: .
+      dockerfile: ./docker/cronjob/cron.dockerfile
+    container_name: cron_job
+    volumes:
+      - ./src:/var/www/html
+    links:
+      - mysql
+    environment:
+      CONTAINER_ROLE: queue
+    networks:
+      - laravel
