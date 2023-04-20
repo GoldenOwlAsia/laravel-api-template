@@ -19,5 +19,6 @@ use Illuminate\Support\Facades\Route;
 // });
 
 Route::namespace('API\V1')->group(function () {
-    Route::resource('users', 'UserController');
+    Route::resource('users', UserController::class);
 });
+// Route::resource('users', 'UserController');

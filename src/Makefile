@@ -11,6 +11,8 @@ cron-stop:
 # ------------- COMPOSER  -----------------
 composer:
 	docker-compose run --rm composer $(filter-out $@,$(MAKECMDGOALS))
+mysql:
+	docker-compose run --rm mysql $(filter-out $@,$(MAKECMDGOALS))
 # ------------- ARTISAN  -----------------
 artisan:
 	docker-compose run --rm artisan $(filter-out $@,$(MAKECMDGOALS))
